@@ -1,6 +1,6 @@
 README
 
-1. Download the tinycc mob if you need. Bugged file (libtcc.c) is included here and in tinycc mob
+1. Download the tinycc mob and replace the libtcc.c file with the included libtcc.c file
 
 2. make compiler with bugged libtcc.c code
 	a. ./configure
